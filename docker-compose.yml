@@ -13,7 +13,7 @@ services:
       - DBPASS=shaumux
       - DBNAME=orderdb
       - DBHOST=database
-      - googleAPIKey=AIzaSyBfaVg1nXAX_BL5xq7AX93Twcl-nv2mOTQ
+      - googleAPIKey=<APIKey>
     depends_on:
       - database
   database:
