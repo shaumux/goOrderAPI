@@ -1,0 +1,29 @@
+version: "3"
+
+services:
+  goOrderAPI:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: goorderapi
+    ports:
+      - "8000:8000"
+    environment:
+      - DBUSER=shaumux
+      - DBPASS=shaumux
+      - DBNAME=orderdb
+      - DBHOST=database
+      - googleAPIKey=AIzaSyBfaVg1nXAX_BL5xq7AX93Twcl-nv2mOTQ
+    depends_on:
+      - database
+  database:
+    image: postgres
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_PASSWORD=shaumux
+    volumes:
+      - postgres_data:/var/lib/postgresql
+volumes:
+  postgres_data:
+
