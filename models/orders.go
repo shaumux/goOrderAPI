@@ -99,6 +99,10 @@ func (order *Order) BeforeSave() error {
 		logger.Log.WithFields(logrus.Fields{"error": err}).Error("Unable to get distance")
 		return err
 	}
+
+	if distance.Rows[0].Elements[0].Status != "OK" {
+		return errors.New("Cannot calculate distance, invalid combination of coordinates")
+	}
 	order.Distance = distance.Rows[0].Elements[0].Distance.Meters
 	order.Status = "UNASSIGNED"
 	return nil
