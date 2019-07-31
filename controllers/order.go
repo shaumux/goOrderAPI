@@ -11,6 +11,11 @@ import (
 	"strconv"
 )
 
+var orderTakeChan = make(chan uuid.UUID)
+var resultChan = make(chan bool)
+var errChan = make(chan error)
+var ExitChan = make(chan bool)
+
 type Order struct {
 	*models.Order
 }
@@ -84,21 +89,6 @@ func TakeOrder(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	lookupOrder := &Order{}
-	lookupOrder.Order = &models.Order{}
-	lookupOrder.ID = lookUpID
-	orderInterface, err := lookupOrder.Get(true)
-	if err != nil {
-		render.Render(w, r, ErrNotFound)
-		return
-	}
-
-	//order := orderInterface.(models.Order)
-	lookupOrder.Order = orderInterface.(*models.Order)
-	//if err:=render.Bind(r, updateOrder); err!=nil{
-	//	render.Render(w, r, ErrBadRequest(err))
-	//	return
-	//}
 	type Status struct {
 		Status string
 	}
@@ -108,17 +98,17 @@ func TakeOrder(w http.ResponseWriter, r *http.Request) {
 		render.Render(w, r, ErrBadRequest(errors.New("Invalid status")))
 		return
 	}
-	if lookupOrder.Status != "TAKEN" {
-		if _, err := lookupOrder.Update(map[string]interface{}{"status": status.Status}); err != nil {
-			render.Render(w, r, ErrBadRequest(err))
-			return
-		}
-	} else {
+
+	orderTakeChan <- lookUpID
+	select {
+	case <-resultChan:
+		render.Render(w, r, RequestSuccessfull)
+		return
+	case <-errChan:
 		render.Render(w, r, ErrBadRequest(errors.New("Order Already Taken")))
 		return
 	}
 
-	render.Render(w, r, RequestSuccessfull)
 }
 
 func ListOrders(w http.ResponseWriter, r *http.Request) {
@@ -139,4 +129,32 @@ func ListOrders(w http.ResponseWriter, r *http.Request) {
 	orders := &OrderList{}
 	orders.ORDERS = ordersInterface.([]*models.Order)
 	render.Render(w, r, orders)
+}
+
+func performOrderTake() {
+	for {
+		lookUpID := <-orderTakeChan
+		lookupOrder := &Order{}
+		lookupOrder.Order = &models.Order{}
+		lookupOrder.ID = lookUpID
+		orderInterface, err := lookupOrder.Get(true)
+		if err != nil {
+			errChan <- err
+		}
+
+		lookupOrder.Order = orderInterface.(*models.Order)
+		if lookupOrder.Status != "TAKEN" {
+			if _, err := lookupOrder.Update(map[string]interface{}{"status": "TAKEN"}); err != nil {
+				errChan <- err
+			}
+		} else {
+			errChan <- err
+		}
+		resultChan <- true
+
+	}
+}
+
+func init() {
+	go performOrderTake()
 }
