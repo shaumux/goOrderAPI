@@ -19,8 +19,8 @@ type Order struct {
 	Base
 	Origin      pq.StringArray `gorm:"not null;type:varchar(100)[]" validate:"len=2,required,dive,gt=0,required"`
 	Destination pq.StringArray `gorm:"not null;type:varchar(100)[]" validate:"len=2,required,dive,gt=0,required"`
-	Status      string
-	Distance    int
+	Status      string         `json:"status"`
+	Distance    int            `json:"distance"`
 }
 
 func (order *Order) Validate() error {

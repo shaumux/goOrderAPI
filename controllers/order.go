@@ -39,9 +39,9 @@ func (o *OrderList) Render(w http.ResponseWriter, r *http.Request) error {
 }
 
 type readOrder struct {
-	ID       uuid.UUID
-	Status   string
-	Distance int
+	ID       uuid.UUID `json:"id"`
+	Status   string    `json:"status"`
+	Distance int       `json:"distance"`
 }
 
 func newReadOrder(order *Order) *readOrder {
@@ -146,12 +146,12 @@ func performOrderTake() {
 		if lookupOrder.Status != "TAKEN" {
 			if _, err := lookupOrder.Update(map[string]interface{}{"status": "TAKEN"}); err != nil {
 				errChan <- err
+			} else {
+				resultChan <- true
 			}
 		} else {
 			errChan <- err
 		}
-		resultChan <- true
-
 	}
 }
 

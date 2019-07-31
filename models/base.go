@@ -16,7 +16,7 @@ type ModelInterface interface {
 
 type Base struct {
 	ModelInterface `gorm:"-" json:"-"`
-	ID             uuid.UUID `sql:"type:uuid;primary_key;default:uuid_generate_v4()"`
+	ID             uuid.UUID `sql:"type:uuid;primary_key;default:uuid_generate_v4()" json:"id"`
 	CreatedAt      time.Time `json:"-"`
 	UpdatedAt      time.Time `json:"-"`
 }
